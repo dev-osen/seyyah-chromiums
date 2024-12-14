@@ -1,0 +1,61 @@
+// Copyright 2024 The Chromium Authors
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
+
+module network.mojom;
+
+import "mojo/public/mojom/base/time.mojom";
+import "sandbox/policy/mojom/context.mojom";
+import "services/network/public/mojom/schemeful_site.mojom";
+import "url/mojom/url.mojom";
+
+// Typemapped to //net/device_bound_sessions/session.h:SessionKey
+struct DeviceBoundSessionKey {
+  // The site the session is scoped to.
+  SchemefulSite site;
+
+  // The site-scoped identifier for the session.
+  string id;
+};
+
+// This struct represents a filter that can be applied to the collection
+// of all sessions. Each field is an optional restriction that can be
+// applied to make the filter apply to fewer sessions. If no fields
+// are set, the filter will match all sessions.
+struct DeviceBoundSessionFilter {
+  // Delete sessions created after a date.
+  mojo_base.mojom.Time? created_after_time;
+
+  // Delete sessions created before a date.
+  mojo_base.mojom.Time? created_before_time;
+
+  // Delete sessions on all of these sites.
+  array<SchemefulSite>? including_sites;
+};
+
+// DeviceBoundSessionManager is a privileged interface that should only
+// be used in trusted processes.
+[RequireContext=sandbox.mojom.Context.kBrowser]
+interface DeviceBoundSessionManager {
+  // Asynchronously fetch all sessions currently registered.
+  GetAllSessions() => (array<DeviceBoundSessionKey> sessions);
+
+  // Delete a session by key.
+  DeleteSession(DeviceBoundSessionKey session);
+
+  // Delete all sessions matching `filter`.
+  DeleteAllSessions(DeviceBoundSessionFilter filter) => ();
+};
+
+// Observer that is notified on use of a device bound session.
+interface DeviceBoundSessionAccessObserver {
+  // Called when a device bound session is used. This includes:
+  // - Newly registered sessions
+  // - Sessions deferring requests
+  // - Session deletion
+  OnDeviceBoundSessionAccessed(DeviceBoundSessionKey session);
+
+  // Called to create a copy of this observer. (e.g. when cloning observers
+  // from ResourceRequest).
+  Clone(pending_receiver<DeviceBoundSessionAccessObserver> observer);
+};
