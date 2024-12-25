@@ -1,0 +1,952 @@
+diff --git a/chrome/browser/BUILD.gn b/chrome/browser/BUILD.gn
+index 483dd09df9..f957f900ce 100644
+--- a/chrome/browser/BUILD.gn
++++ b/chrome/browser/BUILD.gn
+@@ -2515,6 +2515,7 @@ static_library("browser") {
+     "//ui/strings",
+     "//ui/surface",
+     "//ui/webui",
++    "//seyyah",
+   ]
+ 
+   # Platforms that have a network diagnostics dialog. All others fall through
+diff --git a/chrome/browser/chrome_content_browser_client.cc b/chrome/browser/chrome_content_browser_client.cc
+index a3996b13ee..1d3d9d75be 100644
+--- a/chrome/browser/chrome_content_browser_client.cc
++++ b/chrome/browser/chrome_content_browser_client.cc
+@@ -828,6 +828,44 @@ using plugins::ChromeContentBrowserClientPluginsPart;
+ using web_apps::ChromeContentBrowserClientIsolatedWebAppsPart;
+ #endif
+ 
++
++
++
++
++
++
++// SEYYAHSIGN
++// SEYYAH-CODE-START (Buradan bir Seyyah gecti)
++
++#include "seyyah/seyyah_page_key_manager.h"
++#include "content/browser/web_contents/web_contents_impl.h"
++
++namespace {
++
++  // Bu sinif her istege baslik ekler
++  class SeyyahPageURLLoaderThrottle : public blink::URLLoaderThrottle {
++  public:
++    explicit SeyyahPageURLLoaderThrottle(const std::string& key) : key_(key) {}
++    ~SeyyahPageURLLoaderThrottle() override = default;
++
++    void WillStartRequest(network::ResourceRequest* request, bool* defer) override {
++      if (!key_.empty()) {
++        request->headers.SetHeader("X-Seyyah-Browser-Key", key_);
++      }
++    }
++
++  private:
++    std::string key_;
++  };
++}
++
++// SEYYAH-CODE-END
++
++
++
++
++
++
+ namespace {
+ 
+ const char kAIManagerUserDataKey[] = "ai_manager";
+@@ -6003,6 +6041,35 @@ ChromeContentBrowserClient::CreateURLLoaderThrottles(
+ 
+   std::vector<std::unique_ptr<blink::URLLoaderThrottle>> result;
+ 
++
++
++  // SEYYAHSIGN
++  // SEYYAH-CODE-START
++
++  LOG(WARNING) << "[SEYYAH][Throttle]: Start";
++
++  content::WebContents* swc = wc_getter.Run();
++  if(swc){
++    const std::string* spk = swc->GetSeyyahPageKey();
++    if(spk){
++      LOG(WARNING) << "[SEYYAH][Throttle] seyyah_page_key: " << *spk;
++
++      // SEYYAH-LIFE-CYCLE: Direk Nesneden okuma (2. yada 3. step)
++      // SEYYAH-NOTE: Burada network icin Throttle yuklemesi yapiliyor
++      result.push_back(std::make_unique<SeyyahPageURLLoaderThrottle>(*spk));
++
++      LOG(WARNING) << "[SEYYAH][Throttle] seyyah_page_key: " << *spk << " >> COMPLETED";
++    }else{
++      LOG(WARNING) << "[SEYYAH][Throttle] SEYYAH-FATAL-ERROR-0: SPK ULASILAMADI ";
++    }
++  }else{
++    LOG(WARNING) << "[SEYYAH][Throttle] SEYYAH-FATAL-ERROR-5: WebContents ULASILAMADI ";
++  }
++
++  // SEYYAH-CODE-END
++
++
++
+   DCHECK(browser_context);
+   Profile* profile = Profile::FromBrowserContext(browser_context);
+   DCHECK(profile);
+@@ -6096,6 +6163,33 @@ ChromeContentBrowserClient::CreateURLLoaderThrottlesForKeepAlive(
+ 
+   std::vector<std::unique_ptr<blink::URLLoaderThrottle>> result;
+ 
++  // SEYYAHSIGN
++  // SEYYAH-CODE-START
++
++  LOG(WARNING) << "[SEYYAH][Throttle2]: Start";
++
++  content::WebContents* swc = wc_getter.Run();
++  if(swc){
++    const std::string* spk = swc->GetSeyyahPageKey();
++    if(spk){
++      LOG(WARNING) << "[SEYYAH][Throttle2] seyyah_page_key: " << *spk;
++
++      // SEYYAH-LIFE-CYCLE: Direk Nesneden okuma (2. yada 3. step)
++      // SEYYAH-NOTE: Burada network icin Throttle yuklemesi yapiliyor
++      result.push_back(std::make_unique<SeyyahPageURLLoaderThrottle>(*spk));
++
++      LOG(WARNING) << "[SEYYAH][Throttle2] seyyah_page_key: " << *spk << " >> COMPLETED";
++    }else{
++      LOG(WARNING) << "[SEYYAH][Throttle2] SEYYAH-FATAL-ERROR-0: SPK ULASILAMADI ";
++    }
++  }else{
++    LOG(WARNING) << "[SEYYAH][Throttle2] SEYYAH-FATAL-ERROR-5: WebContents ULASILAMADI ";
++  }
++
++  // SEYYAH-CODE-END
++
++
++
+   DCHECK(browser_context);
+   Profile* profile = Profile::FromBrowserContext(browser_context);
+   DCHECK(profile);
+@@ -8784,3 +8878,6 @@ void ChromeContentBrowserClient::OnTracingServiceStopped() {
+   windows_system_tracing_client_.reset();
+ }
+ #endif  // BUILDFLAG(IS_WIN)
++
++
++
+diff --git a/chrome/browser/ui/BUILD.gn b/chrome/browser/ui/BUILD.gn
+index d039ccc4fe..2ac808fb24 100644
+--- a/chrome/browser/ui/BUILD.gn
++++ b/chrome/browser/ui/BUILD.gn
+@@ -319,6 +319,7 @@ static_library("ui") {
+     "//chrome/browser/search",
+     "//chrome/browser/task_manager",
+     "//chrome/browser/ui/tabs:tab_enums",
++    "//seyyah"
+   ]
+ 
+   deps = [
+@@ -695,6 +696,7 @@ static_library("ui") {
+     "//ui/surface",
+     "//ui/webui",
+     "//v8:v8_version",
++    "//seyyah"
+   ]
+ 
+   if (is_chrome_branded) {
+diff --git a/chrome/browser/ui/tab_helpers.cc b/chrome/browser/ui/tab_helpers.cc
+index 083d566f89..6ce484b807 100644
+--- a/chrome/browser/ui/tab_helpers.cc
++++ b/chrome/browser/ui/tab_helpers.cc
+@@ -292,6 +292,19 @@
+ #include "components/tpcd/enterprise_reporting/enterprise_reporting_tab_helper.h"
+ #endif
+ 
++
++
++
++// SEYYAHSIGN
++// SEYYAH-CODE-START
++
++#include "seyyah/seyyah_page_key_observer_manager.h"
++
++// SEYYAH-CODE-END
++
++
++
++
+ using content::WebContents;
+ 
+ namespace {
+@@ -313,6 +326,14 @@ void TabHelpers::AttachTabHelpers(WebContents* web_contents) {
+     return;
+   }
+ 
++  // SEYYAHSIGN
++  // SEYYAH-CODE-START
++
++  SeyyahPageKeyObserverManager::Instance().AddObserver(web_contents);
++
++  // SEYYAH-CODE-END
++
++
+   // Mark as adopted.
+   web_contents->SetUserData(&kTabContentsAttachedTabHelpersUserDataKey,
+                             std::make_unique<base::SupportsUserData::Data>());
+diff --git a/chrome/renderer/BUILD.gn b/chrome/renderer/BUILD.gn
+index 05117bbe71..f0b18e7a41 100644
+--- a/chrome/renderer/BUILD.gn
++++ b/chrome/renderer/BUILD.gn
+@@ -236,6 +236,7 @@ static_library("renderer") {
+     "//ui/gfx/geometry:geometry",
+     "//ui/surface",
+     "//v8",
++    "//seyyah"
+   ]
+ 
+   data_deps = [ "//tools/v8_context_snapshot" ]
+diff --git a/chrome/renderer/chrome_content_renderer_client.cc b/chrome/renderer/chrome_content_renderer_client.cc
+index 5f36c4b380..3fdcfb562c 100644
+--- a/chrome/renderer/chrome_content_renderer_client.cc
++++ b/chrome/renderer/chrome_content_renderer_client.cc
+@@ -266,6 +266,20 @@
+ #include "chrome/renderer/media/chrome_key_systems.h"
+ #endif
+ 
++
++// SEYYAHSIGN
++// SEYYAH-CODE-START
++
++#include "seyyah/seyyah_render_observer.h"
++#include "base/task/thread_pool.h"
++
++// SEYYAH-CODE-END
++
++
++
++
++
++
+ using autofill::AutofillAgent;
+ using autofill::PasswordAutofillAgent;
+ using autofill::PasswordGenerationAgent;
+@@ -598,8 +612,10 @@ void ChromeContentRendererClient::ExposeInterfacesToBrowser(
+   ExposeChromeRendererInterfacesToBrowser(this, binders);
+ }
+ 
++
+ void ChromeContentRendererClient::RenderFrameCreated(
+     content::RenderFrame* render_frame) {
++
+   ChromeRenderFrameObserver* render_frame_observer =
+       new ChromeRenderFrameObserver(render_frame, web_cache_impl_.get());
+   service_manager::BinderRegistry* registry = render_frame_observer->registry();
+@@ -800,8 +816,105 @@ void ChromeContentRendererClient::RenderFrameCreated(
+     new wallet::BoardingPassExtractor(render_frame, registry);
+   }
+ #endif
++
++
++
++
++
++
++  // SEYYAHSIGN
++  // SEYYAH-CODE-START
++
++  // SEYYAH-LIFE-CYCLE: routing_id'e gore spk okuma (5. step)
++  // SEYYAH-NOTE: Burada onceki stepte routing_id 'e gore spk okunur ve bu spk'e gore JS implement edilir
++
++  new SeyyahRenderObserver(render_frame);
++
++//  int routing_id = render_frame->GetRoutingID();
++//
++//  scoped_refptr<base::SingleThreadTaskRunner> task_runner =
++//      base::ThreadPool::CreateSingleThreadTaskRunner({base::MayBlock(), base::TaskPriority::BEST_EFFORT});
++//
++//  task_runner->PostTask(
++//      FROM_HERE,
++//      base::BindOnce(&ChromeContentRendererClient::TrySetPageKey, base::Unretained(this), routing_id));
++
++  // SEYYAH-CODE-END
+ }
+ 
++
++
++
++// SEYYAHSIGN
++// SEYYAH-CODE-START
++
++//void ChromeContentRendererClient::TrySetPageKey(int routing_id) {
++//
++//  LOG(WARNING) << "[SEYYAH][RENDER]: START";
++//
++//  std::string page_unique_key = SeyyahPageKeyManager::Instance().GetRoutingKey(routing_id);
++//  LOG(WARNING) << "[SEYYAH][RENDER] STEP-1: SPK: " << page_unique_key << " / routing_id:" << routing_id;
++//
++//  if(page_unique_key == "")
++//    return;
++//
++//  LOG(WARNING) << "[SEYYAH][RENDER] STEP-2";
++//
++//  content::RenderFrame* render_frame = content::RenderFrame::FromRoutingID(routing_id);
++//  if(!render_frame)
++//    return;
++//
++//  LOG(WARNING) << "[SEYYAH][RENDER] STEP-3";
++//
++//  blink::WebLocalFrame* web_frame = render_frame->GetWebFrame();
++//  if (!web_frame)
++//    return;
++//
++//  LOG(WARNING) << "[SEYYAH][RENDER] STEP-4";
++//
++//  v8::Local<v8::Context> context = web_frame->MainWorldScriptContext();
++//  if (context.IsEmpty() || !context->IsContext()) {
++//    LOG(WARNING) << "[SEYYAH][RENDER] FATAL-ERROR-1: Context is empty, retrying...";
++//
++//    scoped_refptr<base::SingleThreadTaskRunner> task_runner = base::ThreadPool::CreateSingleThreadTaskRunner({base::MayBlock(), base::TaskPriority::BEST_EFFORT});
++//    task_runner->PostTask(FROM_HERE, base::BindOnce(&ChromeContentRendererClient::TrySetPageKey, base::Unretained(this), routing_id));
++//    return;
++//  }
++//
++//  LOG(WARNING) << "[SEYYAH][RENDER]: STEP-5";
++//
++//  v8::Isolate* isolate = context->GetIsolate();
++//  if(!isolate)
++//    return;
++//
++//  LOG(WARNING) << "[SEYYAH][RENDER]: STEP-6";
++//
++//  v8::Context::Scope context_scope(context);
++//  v8::Local<v8::Object> global = context->Global();
++//  v8::Local<v8::String> key_name = v8::String::NewFromUtf8(isolate, "page_unique_key", v8::NewStringType::kNormal).ToLocalChecked();
++//  v8::Local<v8::String> key_value = v8::String::NewFromUtf8(isolate, page_unique_key.c_str(), v8::NewStringType::kNormal).ToLocalChecked();
++//  bool set_success = global->Set(context, key_name, key_value).FromMaybe(false);
++//
++//  LOG(WARNING) << "[SEYYAH][RENDER] STEP-7: " << page_unique_key << " / Success: " << set_success;;
++//
++//  if (!set_success) {
++//    LOG(INFO) << "[SEYYAH][RENDER] FATAL-ERROR-2: TrySetPageKey >> JS parametresi eklenemedi!";
++//    scoped_refptr<base::SingleThreadTaskRunner> task_runner2 = base::ThreadPool::CreateSingleThreadTaskRunner({base::MayBlock(), base::TaskPriority::BEST_EFFORT});
++//    task_runner2->PostTask(FROM_HERE, base::BindOnce(&ChromeContentRendererClient::TrySetPageKey, base::Unretained(this), routing_id));
++//  }
++//
++//  LOG(WARNING) << "[SEYYAH][RENDER]: COMPLETED";
++//}
++
++// SEYYAH-CODE-END
++
++
++
++
++
++
++
++
+ void ChromeContentRendererClient::WebViewCreated(
+     blink::WebView* web_view,
+     bool was_created_by_renderer,
+diff --git a/chrome/renderer/chrome_content_renderer_client.h b/chrome/renderer/chrome_content_renderer_client.h
+index 7cfba70e16..b179845b72 100644
+--- a/chrome/renderer/chrome_content_renderer_client.h
++++ b/chrome/renderer/chrome_content_renderer_client.h
+@@ -261,6 +261,16 @@ class ChromeContentRendererClient
+ #endif
+ 
+  private:
++
++  // SEYYAHSIGN
++  // SEYYAH-CODE-START
++
++  void TrySetPageKey(int render_frame);
++
++  // SEYYAH-CODE-END
++
++
++
+   FRIEND_TEST_ALL_PREFIXES(ChromeContentRendererClientTest, NaClRestriction);
+   FRIEND_TEST_ALL_PREFIXES(ChromeContentRendererClientTest,
+                            ShouldSuppressErrorPage);
+diff --git a/content/browser/BUILD.gn b/content/browser/BUILD.gn
+index bc02d82f19..a676e6145b 100644
+--- a/content/browser/BUILD.gn
++++ b/content/browser/BUILD.gn
+@@ -328,6 +328,7 @@ source_set("browser") {
+     "//ui/strings:ax_strings",
+     "//ui/touch_selection",
+     "//v8:v8_version",
++    "//seyyah"
+   ]
+ 
+   public_deps = [
+diff --git a/content/browser/renderer_host/render_frame_host_impl.cc b/content/browser/renderer_host/render_frame_host_impl.cc
+index 97571cc990..51c99af21c 100644
+--- a/content/browser/renderer_host/render_frame_host_impl.cc
++++ b/content/browser/renderer_host/render_frame_host_impl.cc
+@@ -328,6 +328,19 @@
+ #include "ui/accessibility/accessibility_switches.h"
+ #endif
+ 
++
++
++// SEYYAHSIGN
++// SEYYAH-CODE-START
++
++//#include "seyyah/seyyah_page_key_manager.h"
++//#include "content/browser/web_contents/web_contents_impl.h"
++
++// SEYYAH-CODE-END
++
++
++
++
+ namespace features {
+ BASE_FEATURE(kDisableFrameNameUpdateOnNonCurrentRenderFrameHost,
+              "DisableFrameNameUpdateOnNonCurrentRenderFrameHost",
+@@ -3857,6 +3870,34 @@ bool RenderFrameHostImpl::CreateRenderFrame(
+   BindBrowserInterfaceBrokerReceiver(
+       params->interface_broker.InitWithNewPipeAndPassReceiver());
+ 
++
++
++  // SEYYAHSIGN
++  // SEYYAH-CODE-START
++
++//  LOG(WARNING) << "[SEYYAH][RFH]: START";
++//
++//  WebContents* swc = WebContents::FromRenderFrameHost(this);
++//  if(swc){
++//    const std::string* spk = swc->GetSeyyahPageKey();
++//    if(spk){
++//      LOG(WARNING) << "[SEYYAH-RFH] seyyah_page_key:" << *spk << ":" << routing_id_;
++//
++//      // SEYYAH-LIFE-CYCLE: Bagli oldugu WCI den okuma (4. step)
++//      // SEYYAH-NOTE: Burada render host ile render arasinda routing_id'e gore adresleme yapilir
++//      SeyyahPageKeyManager::Instance().SetRoutingKey(routing_id_, *spk);
++//
++//      LOG(WARNING) << "[SEYYAH][RFH] seyyah_page_key: " << spk->c_str() << " >> COMPLETED";
++//    }else{
++//      LOG(WARNING) << "[SEYYAH][RFH] SEYYAH-FATAL-ERROR-0: SPK ULASILAMADI ";
++//    }
++//  }else{
++//    LOG(WARNING) << "[SEYYAH][RFH] SEYYAH-FATAL-ERROR-5: WebContents ULASILAMADI ";
++//  }
++
++  // SEYYAH-CODE-END
++
++
+   params->routing_id = routing_id_;
+   params->is_for_nested_main_frame =
+       is_main_frame() &&
+diff --git a/content/browser/web_contents/web_contents_impl.cc b/content/browser/web_contents/web_contents_impl.cc
+index 15502dccda..6989197831 100644
+--- a/content/browser/web_contents/web_contents_impl.cc
++++ b/content/browser/web_contents/web_contents_impl.cc
+@@ -252,6 +252,16 @@
+ #include "content/public/browser/picture_in_picture_window_controller.h"
+ #endif  // !BUILDFLAG(IS_ANDROID)
+ 
++
++// SEYYAHSIGN
++// SEYYAH-CODE-START
++
++#include "seyyah/seyyah_page_key_manager.h"
++
++// SEYYAH-CODE-END
++
++
++
+ namespace content {
+ 
+ namespace {
+@@ -1230,6 +1240,21 @@ class WebContentsOfBrowserContext : public base::SupportsUserData::Data {
+ 
+ }  // namespace
+ 
++
++
++// SEYYAHSIGN
++// SEYYAH-CODE-START
++
++const std::string* WebContentsImpl::GetSeyyahPageKey() const {
++  base::AutoLock seyyah_lock(seyyah_lock_);
++  return seyyah_page_key_ ? seyyah_page_key_.get() : nullptr;
++}
++
++// SEYYAH-CODE-END
++
++
++
++
+ WebContentsImpl::WebContentsImpl(BrowserContext* browser_context)
+     : ColorProviderSourceObserver(DefaultColorProviderSource::GetInstance()),
+       delegate_(nullptr),
+@@ -1286,6 +1311,21 @@ WebContentsImpl::WebContentsImpl(BrowserContext* browser_context)
+   safe_area_insets_host_ = SafeAreaInsetsHost::Create(this);
+ #endif
+ 
++
++  // SEYYAHSIGN
++  // SEYYAH-CODE-START
++
++  LOG(WARNING) << "[SEYYAH][WCI]: START";
++
++  // SEYYAH-LIFE-CYCLE: Yeni key uretme (1. step)
++  // SEYYAH-NOTE: Burada webcontents icin key olusturulur.
++  seyyah_page_key_ = std::make_unique<std::string>(SeyyahPageKeyManager::Instance().GetRandomKey());
++
++  LOG(WARNING) << "[SEYYAH][WCI]: COMPLETED >>> SPK: " << std::move(*seyyah_page_key_);
++
++  // SEYYAH-CODE-END
++
++
+   ui::NativeTheme* native_theme = ui::NativeTheme::GetInstanceForWeb();
+   native_theme_observation_.Observe(native_theme);
+   slow_web_preference_cache_observation_.Observe(
+@@ -1553,6 +1593,10 @@ std::unique_ptr<WebContentsImpl> WebContentsImpl::CreateWithOpener(
+   if (outer_web_contents) {
+     outer_web_contents->InnerWebContentsCreated(new_contents.get());
+   }
++
++
++
++
+   return new_contents;
+ }
+ 
+diff --git a/content/browser/web_contents/web_contents_impl.h b/content/browser/web_contents/web_contents_impl.h
+index 7ed686f1e0..a581caa8d1 100644
+--- a/content/browser/web_contents/web_contents_impl.h
++++ b/content/browser/web_contents/web_contents_impl.h
+@@ -1558,7 +1558,26 @@ class CONTENT_EXPORT WebContentsImpl
+ 
+   WebContents* GetOpenedPartitionedPopin() const override;
+ 
++  // SEYYAHSIGN
++  // SEYYAH-CODE-START
++
++  const std::string* GetSeyyahPageKey() const override;
++
++  // SEYYAH-CODE-END
++
+  private:
++
++
++  // SEYYAHSIGN
++  // SEYYAH-CODE-START
++
++  mutable base::Lock seyyah_lock_;
++  std::unique_ptr<std::string> seyyah_page_key_;
++
++  // SEYYAH-CODE-END
++
++
++
+   using FrameTreeIterationCallback = base::FunctionRef<void(FrameTree&)>;
+   using RenderViewHostIterationCallback =
+       base::RepeatingCallback<void(RenderViewHostImpl*)>;
+@@ -1773,6 +1792,14 @@ class CONTENT_EXPORT WebContentsImpl
+     base::ObserverList<WebContentsObserver> observers_;
+   };
+ 
++
++
++
++
++
++
++
++
+   // See WebContents::Create for a description of these parameters.
+   explicit WebContentsImpl(BrowserContext* browser_context);
+ 
+diff --git a/content/public/browser/web_contents.h b/content/public/browser/web_contents.h
+index 18381327c7..70b9b27907 100644
+--- a/content/public/browser/web_contents.h
++++ b/content/public/browser/web_contents.h
+@@ -153,6 +153,15 @@ class WebContents : public PageNavigator, public base::SupportsUserData {
+   ADVANCED_MEMORY_SAFETY_CHECKS();
+ 
+  public:
++
++  // SEYYAHSIGN
++  // SEYYAH-CODE-START
++
++  virtual const std::string* GetSeyyahPageKey() const = 0;
++
++  // SEYYAH-CODE-END
++
++
+   // Device activity types that can be used by a WebContents.
+   enum class CapabilityType {
+     // WebUSB
+diff --git a/net/url_request/url_request.cc b/net/url_request/url_request.cc
+index 61fa51d843..9aa0f313b0 100644
+--- a/net/url_request/url_request.cc
++++ b/net/url_request/url_request.cc
+@@ -260,6 +260,21 @@ void URLRequest::SetExtraRequestHeaders(const HttpRequestHeaders& headers) {
+   DCHECK(!is_pending_);
+   extra_request_headers_ = headers;
+ 
++
++  LOG(WARNING) << ">>>> SEYYAH ";
++
++  std::optional<std::string> userAgent(extra_request_headers_.GetHeader("User-Agent"));
++  extra_request_headers_.SetHeader("User-Agent", *userAgent + " SEYYAH");
++
++  std::optional<std::string> tokens(extra_request_headers_.GetHeader("seyyah-frame-token"));
++
++  if(tokens.has_value()) {
++    LOG(WARNING) << ">>>> SEYYAH >>> TOKEN: " << tokens.value();
++  }else{
++    LOG(WARNING) << ">>>> SEYYAH >>> TOKEN: DEGER YOK";
++  }
++
++
+   // NOTE: This method will likely become non-trivial once the other setters
+   // for request headers are implemented.
+ }
+diff --git a/seyyah/BUILD.gn b/seyyah/BUILD.gn
+index e69de29bb2..818c07d6f1 100644
+--- a/seyyah/BUILD.gn
++++ b/seyyah/BUILD.gn
+@@ -0,0 +1,38 @@
++# Seyyah modülü için kaynak dosyalar
++component("seyyah") {
++  sources = [
++    "seyyah_page_key_manager.cc",
++    "seyyah_v8_global_tool.cc",
++    "seyyah_page_key_observer.cc",
++    "seyyah_page_key_observer_manager.cc",
++    "seyyah_render_observer.cc",
++    "seyyah_render_observer_manager.cc",
++  ]
++
++  deps = [
++    "//base",
++    "//v8",
++    "//third_party/blink/public:blink_headers",
++  ]
++
++  # Görünürlük ayarı
++  visibility = [ "//*" ]
++}
++
++# SeyyahObserver modülü için kaynak dosyalar
++component("seyyah_observer") {
++  sources = [
++    "seyyah_page_key_observer.cc",
++    "seyyah_page_key_observer_manager.cc",
++    "seyyah_render_observer.cc",
++    "seyyah_render_observer_manager.cc",
++  ]
++
++  deps = [
++    "//content",
++    "//base",
++  ]
++
++  # Görünürlük ayarı
++  visibility = [ "//*" ]
++}
+diff --git a/seyyah/seyyah_page_key_manager.cc b/seyyah/seyyah_page_key_manager.cc
+index e69de29bb2..8d42e5d2c9 100644
+--- a/seyyah/seyyah_page_key_manager.cc
++++ b/seyyah/seyyah_page_key_manager.cc
+@@ -0,0 +1,95 @@
++#include "seyyah_page_key_manager.h"
++#include "base/logging.h"
++#include <random>
++#include <filesystem>
++#include <fstream>
++#include <iostream>
++#include <thread>
++#include <chrono>
++
++const std::string SeyyahPageKeyManager::baseDirectory = "/seyyah/chromium";
++
++
++SeyyahPageKeyManager& SeyyahPageKeyManager::Instance() {
++    static SeyyahPageKeyManager instance;
++    return instance;
++}
++
++
++void SeyyahPageKeyManager::SetRoutingKey(int routingID, const std::string& pageKey) {
++    std::lock_guard<std::mutex> lock(fileMutex);
++
++    EnsureDirectoryExists();
++    std::string filePath = GetFilePath(routingID);
++    std::ofstream outFile(filePath, std::ios::trunc);
++    if (!outFile) {
++        LOG(ERROR) << "[SEYYAH][SetRoutingKey] FATAL-ERROR: Dosyaya yazamadi" << filePath;
++        return;
++    }
++    outFile << pageKey;
++    outFile.close();
++
++//    std::cout << "SetRoutingKey - Written to file: " << filePath << ", PageKey: " << pageKey << std::endl;
++}
++
++
++std::string SeyyahPageKeyManager::GetRoutingKey(int routingID) {
++  std::lock_guard<std::mutex> lock(fileMutex);
++
++  std::string filePath = GetFilePath(routingID);
++  std::ifstream inFile;
++  const int maxRetries = 10; // 10 deneme
++  int attempt = 0;
++
++  while (attempt < maxRetries) {
++    inFile.open(filePath);
++    if (inFile) {
++      break; // Dosya açıldıysa döngüden çık
++    }
++
++    LOG(ERROR) << "[SEYYAH][GetRoutingKey] WARN: Dosya bulunamadi! / DOSYA: " << filePath << " / DENEME: " << (attempt + 1);
++
++    // 1 saniye bekle
++    std::this_thread::sleep_for(std::chrono::seconds(1));
++    attempt++;
++  }
++
++  if (!inFile) {
++    LOG(ERROR) << "[SEYYAH][GetRoutingKey] FATAL-ERROR: Dosya bulunamadi! / DOSYA: " << filePath << " / DENEME: " << (maxRetries + 1);
++    return "";
++  }
++
++  std::string pageKey;
++  std::getline(inFile, pageKey);
++  inFile.close();
++
++  LOG(ERROR) << "[SEYYAH][GetRoutingKey] SPK:" << pageKey;
++
++  return pageKey;
++}
++
++
++std::string SeyyahPageKeyManager::GetRandomKey() {
++    static const char charset[] = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
++    static std::default_random_engine engine(std::random_device{}());
++    static std::uniform_int_distribution<size_t> dist(0, sizeof(charset) - 2);
++
++    std::string randomKey;
++    for (size_t i = 0; i < 16; ++i) {
++        randomKey += charset[dist(engine)];
++    }
++    return randomKey;
++}
++
++
++void SeyyahPageKeyManager::EnsureDirectoryExists() {
++    if (!std::filesystem::exists(baseDirectory)) {
++        std::filesystem::create_directories(baseDirectory);
++        std::cout << "EnsureDirectoryExists - Directory created: " << baseDirectory << std::endl;
++    }
++}
++
++
++std::string SeyyahPageKeyManager::GetFilePath(int routingID) {
++    return baseDirectory + "/" + std::to_string(routingID) + ".sp";
++}
+diff --git a/seyyah/seyyah_page_key_manager.h b/seyyah/seyyah_page_key_manager.h
+index 02bbee3fa0..6e3c901945 100644
+--- a/seyyah/seyyah_page_key_manager.h
++++ b/seyyah/seyyah_page_key_manager.h
+@@ -1,8 +1,41 @@
+-//
+-// Created by root on 12/21/24.
+-//
+-
+ #ifndef SEYYAH_PAGE_KEY_MANAGER_H
+ #define SEYYAH_PAGE_KEY_MANAGER_H
+ 
++#include <string>
++#include <mutex>
++
++class SeyyahPageKeyManager {
++public:
++  // Singleton instance erişimi
++  static SeyyahPageKeyManager& Instance();
++
++  // Routing ID için PageKey ayarla ve dosyaya yaz
++  void SetRoutingKey(int routingID, const std::string& pageKey);
++
++  // Dosyadan Routing ID için PageKey al
++  std::string GetRoutingKey(int routingID);
++
++  // Rastgele bir PageKey oluştur
++  static std::string GetRandomKey();
++
++private:
++  // Dosyanın saklanacağı dizin
++  static const std::string baseDirectory;
++
++  // Erişim için mutex
++  std::mutex fileMutex;
++
++  // Private constructor ve destructor (Singleton tasarımı)
++  SeyyahPageKeyManager() = default;
++  ~SeyyahPageKeyManager() = default;
++
++  // Kopyalama ve atama operatörlerini sil
++  SeyyahPageKeyManager(const SeyyahPageKeyManager&) = delete;
++  SeyyahPageKeyManager& operator=(const SeyyahPageKeyManager&) = delete;
++
++  // Yardımcı fonksiyonlar
++  static void EnsureDirectoryExists();
++  static std::string GetFilePath(int routingID);
++};
++
+ #endif //SEYYAH_PAGE_KEY_MANAGER_H
+diff --git a/seyyah/seyyah_render_observer.cc b/seyyah/seyyah_render_observer.cc
+index e69de29bb2..8b96c54531 100644
+--- a/seyyah/seyyah_render_observer.cc
++++ b/seyyah/seyyah_render_observer.cc
+@@ -0,0 +1,52 @@
++#include "seyyah_render_observer.h"
++#include "seyyah_render_observer_manager.h"
++#include "seyyah_page_key_manager.h"
++#include "third_party/blink/public/web/web_frame.h"
++#include "third_party/blink/public/web/web_local_frame.h"
++#include "v8/include/v8.h"
++#include "base/logging.h"
++
++SeyyahRenderObserver::SeyyahRenderObserver(content::RenderFrame* render_frame)
++    : content::RenderFrameObserver(render_frame), render_frame_(render_frame) {
++
++  SeyyahRenderObserverManager::Instance().AddObserver(this);
++}
++
++SeyyahRenderObserver::~SeyyahRenderObserver() {
++  SeyyahRenderObserverManager::Instance().RemoveObserver(this);
++}
++
++void SeyyahRenderObserver::DidCreateScriptContext(v8::Local<v8::Context> context, int world_id) {
++
++  LOG(WARNING) << "[SEYYAH][RENDER]: START";
++
++  int routing_id = render_frame_->GetRoutingID();
++  std::string page_unique_key = SeyyahPageKeyManager::Instance().GetRoutingKey(routing_id);
++
++  LOG(WARNING) << "[SEYYAH][RENDER] STEP-1: SPK: " << page_unique_key << " / routing_id: " << routing_id;
++
++  if(page_unique_key == "")
++    return;
++
++  LOG(WARNING) << "[SEYYAH][RENDER] STEP-2";
++
++  v8::Isolate* isolate = context->GetIsolate();
++  if(!isolate)
++    return;
++
++  LOG(WARNING) << "[SEYYAH][RENDER] STEP-3";
++
++  v8::Context::Scope context_scope(context);
++  v8::Local<v8::Object> global = context->Global();
++  v8::Local<v8::String> key_name = v8::String::NewFromUtf8(isolate, "page_unique_key", v8::NewStringType::kNormal).ToLocalChecked();
++  v8::Local<v8::String> key_value = v8::String::NewFromUtf8(isolate, page_unique_key.c_str(), v8::NewStringType::kNormal).ToLocalChecked();
++  bool set_success = global->Set(context, key_name, key_value).FromMaybe(false);
++
++  LOG(WARNING) << "[SEYYAH][RENDER] STEP-4: " << page_unique_key << " / Success: " << set_success;;
++
++  LOG(WARNING) << "[SEYYAH][RENDER]: COMPLETED";
++}
++
++void SeyyahRenderObserver::OnDestruct() {
++  delete this;
++}
+diff --git a/seyyah/seyyah_render_observer.h b/seyyah/seyyah_render_observer.h
+index e69de29bb2..7a83ec73f3 100644
+--- a/seyyah/seyyah_render_observer.h
++++ b/seyyah/seyyah_render_observer.h
+@@ -0,0 +1,23 @@
++#ifndef SEYYAH_RENDER_OBSERVER_H_
++#define SEYYAH_RENDER_OBSERVER_H_
++
++#include "content/public/renderer/render_frame_observer.h"
++#include "content/public/renderer/render_frame.h"
++
++
++class SeyyahRenderObserver : public content::RenderFrameObserver {
++public:
++  explicit SeyyahRenderObserver(content::RenderFrame* render_frame);
++  ~SeyyahRenderObserver() override;
++
++  // V8 bağlamı oluşturulduğunda tetiklenir
++  void DidCreateScriptContext(v8::Local<v8::Context> context, int world_id) override;
++
++  void OnDestruct() override;
++
++private:
++  content::RenderFrame* render_frame_;
++
++};
++
++#endif // SEYYAH_RENDER_OBSERVER_H_
+diff --git a/seyyah/seyyah_render_observer_manager.cc b/seyyah/seyyah_render_observer_manager.cc
+index e69de29bb2..2711f9dec7 100644
+--- a/seyyah/seyyah_render_observer_manager.cc
++++ b/seyyah/seyyah_render_observer_manager.cc
+@@ -0,0 +1,22 @@
++#include "seyyah_render_observer_manager.h"
++
++SeyyahRenderObserverManager& SeyyahRenderObserverManager::Instance() {
++  static SeyyahRenderObserverManager instance;
++  return instance;
++}
++
++SeyyahRenderObserverManager::SeyyahRenderObserverManager() = default;
++
++SeyyahRenderObserverManager::~SeyyahRenderObserverManager() = default;
++
++void SeyyahRenderObserverManager::AddObserver(content::RenderFrameObserver* observer) {
++  observers_.insert(observer);
++}
++
++void SeyyahRenderObserverManager::RemoveObserver(content::RenderFrameObserver* observer) {
++  observers_.erase(observer);
++}
++
++void SeyyahRenderObserverManager::ClearObservers() {
++  observers_.clear();
++}
+diff --git a/seyyah/seyyah_render_observer_manager.h b/seyyah/seyyah_render_observer_manager.h
+index e69de29bb2..a1ccca7f7e 100644
+--- a/seyyah/seyyah_render_observer_manager.h
++++ b/seyyah/seyyah_render_observer_manager.h
+@@ -0,0 +1,31 @@
++#ifndef SEYYAH_RENDER_OBSERVER_MANAGER_H_
++#define SEYYAH_RENDER_OBSERVER_MANAGER_H_
++
++#include "content/public/renderer/render_frame_observer.h"
++#include <set>
++
++// Observer'ların yaşam döngüsünü yöneten singleton sınıf
++class SeyyahRenderObserverManager {
++public:
++  // Singleton örneği almak için
++  static SeyyahRenderObserverManager& Instance();
++
++  // Observer ekleme
++  void AddObserver(content::RenderFrameObserver* observer);
++
++  // Observer kaldırma
++  void RemoveObserver(content::RenderFrameObserver* observer);
++
++  // Tüm observer'ları temizle
++  void ClearObservers();
++
++private:
++  // Yapıcı ve yıkıcılar
++  SeyyahRenderObserverManager();
++  ~SeyyahRenderObserverManager();
++
++  // Observer kümesi
++  std::set<content::RenderFrameObserver*> observers_;
++};
++
++#endif // SEYYAH_RENDER_OBSERVER_MANAGER_H_

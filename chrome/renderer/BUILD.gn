@@ -236,6 +236,7 @@ static_library("renderer") {
     "//ui/gfx/geometry:geometry",
     "//ui/surface",
     "//v8",
+    "//seyyah"
   ]
 
   data_deps = [ "//tools/v8_context_snapshot" ]

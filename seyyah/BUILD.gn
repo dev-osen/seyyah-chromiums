@@ -1,0 +1,41 @@
+# Seyyah modülü için kaynak dosyalar
+component("seyyah") {
+  sources = [
+    "seyyah_system.cc",
+    "seyyah_page_key_manager.cc",
+    "seyyah_page_key_observer.cc",
+    "seyyah_page_key_observer_manager.cc",
+    "seyyah_render_observer.cc",
+    "seyyah_render_observer_manager.cc",
+    "seyyah_process_manager.cc",
+    "seyyah_v8_manipulator.cc"
+  ]
+
+  deps = [
+    "//services",
+    "//base",
+    "//v8",
+    "//third_party/blink/public:blink_headers",
+  ]
+
+  # Görünürlük ayarı
+  visibility = [ "//*" ]
+}
+
+# SeyyahObserver modülü için kaynak dosyalar
+component("seyyah_observer") {
+  sources = [
+    "seyyah_page_key_observer.cc",
+    "seyyah_page_key_observer_manager.cc",
+    "seyyah_render_observer.cc",
+    "seyyah_render_observer_manager.cc",
+  ]
+
+  deps = [
+    "//content",
+    "//base",
+  ]
+
+  # Görünürlük ayarı
+  visibility = [ "//*" ]
+}

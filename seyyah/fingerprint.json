@@ -1,0 +1,111 @@
+{
+  "navigator": {
+    "platform": "MacIntel",
+    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/90.0.4430.93 Safari/537.36",
+    "language": "en-US",
+    "plugins": ["Plugin1", "Plugin2"]
+  },
+  "screen": {
+    "width": 1920,
+    "height": 1080,
+    "colorDepth": 24,
+    "availWidth": 1920,
+    "availHeight": 1040,
+    "pixelDepth": 24
+  },
+  "canvas": {
+    "fingerprint": "unique_canvas_fingerprint_string"
+  },
+  "webgl": {
+    "vendor": "NVIDIA Corporation",
+    "renderer": "GeForce GTX 1080/PCIe/SSE2"
+  },
+  "audioContext": {
+    "sampleRate": 44100,
+    "outputLatency": 0.02
+  },
+  "fonts": {
+    "availableFonts": ["Arial", "Verdana", "Times New Roman"]
+  },
+  "battery": {
+    "charging": true,
+    "level": 0.85,
+    "chargingTime": 3600,
+    "dischargingTime": 7200
+  },
+  "network": {
+    "effectiveType": "4g",
+    "downlink": 10.5,
+    "rtt": 50
+  },
+  "webrtc": {
+    "localIPs": ["192.168.1.2", "10.0.0.5"]
+  },
+  "deviceOrientation": {
+    "alpha": 30,
+    "beta": 15,
+    "gamma": -5
+  },
+  "mediaDevices": {
+    "enumerateDevices": [
+      {
+        "deviceId": "audio123",
+        "kind": "audioinput",
+        "label": "Microphone",
+        "groupId": "group1"
+      },
+      {
+        "deviceId": "video123",
+        "kind": "videoinput",
+        "label": "Webcam",
+        "groupId": "group1"
+      }
+    ]
+  },
+  "storage": {
+    "estimate": {
+      "quota": 21474836480,
+      "usage": 10737418240
+    }
+  },
+  "performance": {
+    "timing": {
+      "navigationStart": 0,
+      "domContentLoadedEventEnd": 1500,
+      "loadEventEnd": 3000
+    }
+  },
+  "permissions": {
+    "geolocation": "granted",
+    "notifications": "denied"
+  },
+  "referrer": {
+    "referrer": "https://www.example.com"
+  },
+  "extensions": {
+    "extensions": ["Extension1", "Extension2"]
+  },
+  "touchSupport": {
+    "maxTouchPoints": 0
+  },
+  "mediaCapabilities": {
+    "supported": true
+  },
+  "storageEstimates": {
+    "quota": 21474836480,
+    "usage": 10737418240
+  },
+  "svgRendering": {
+    "svgSupported": true
+  },
+  "pageInteractions": {
+    "clicks": 10,
+    "scrolls": 5
+  },
+  "computedStyles": {
+    "bodyFontSize": "16px"
+  },
+  "colorScheme": {
+    "prefersColorScheme": "light"
+  }
+}

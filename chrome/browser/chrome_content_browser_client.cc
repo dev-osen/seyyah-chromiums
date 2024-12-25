@@ -828,6 +828,44 @@ using plugins::ChromeContentBrowserClientPluginsPart;
 using web_apps::ChromeContentBrowserClientIsolatedWebAppsPart;
 #endif
 
+
+
+
+
+
+
+// SEYYAHSIGN
+// SEYYAH-CODE-START (Buradan bir Seyyah gecti)
+
+#include "seyyah/seyyah_page_key_manager.h"
+#include "content/browser/web_contents/web_contents_impl.h"
+
+namespace {
+
+  // Bu sinif her istege baslik ekler
+  class SeyyahPageURLLoaderThrottle : public blink::URLLoaderThrottle {
+  public:
+    explicit SeyyahPageURLLoaderThrottle(const std::string& key) : key_(key) {}
+    ~SeyyahPageURLLoaderThrottle() override = default;
+
+    void WillStartRequest(network::ResourceRequest* request, bool* defer) override {
+      if (!key_.empty()) {
+        request->headers.SetHeader("X-Seyyah-Browser-Key", key_);
+      }
+    }
+
+  private:
+    std::string key_;
+  };
+}
+
+// SEYYAH-CODE-END
+
+
+
+
+
+
 namespace {
 
 const char kAIManagerUserDataKey[] = "ai_manager";
@@ -6003,6 +6041,35 @@ ChromeContentBrowserClient::CreateURLLoaderThrottles(
 
   std::vector<std::unique_ptr<blink::URLLoaderThrottle>> result;
 
+
+
+  // SEYYAHSIGN
+  // SEYYAH-CODE-START
+
+  LOG(WARNING) << "[SEYYAH][Throttle]: Start";
+
+  content::WebContents* swc = wc_getter.Run();
+  if(swc){
+    const std::string* spk = swc->GetSeyyahPageKey();
+    if(spk){
+      LOG(WARNING) << "[SEYYAH][Throttle] seyyah_page_key: " << *spk;
+
+      // SEYYAH-LIFE-CYCLE: Direk Nesneden okuma (2. yada 3. step)
+      // SEYYAH-NOTE: Burada network icin Throttle yuklemesi yapiliyor
+      result.push_back(std::make_unique<SeyyahPageURLLoaderThrottle>(*spk));
+
+      LOG(WARNING) << "[SEYYAH][Throttle] seyyah_page_key: " << *spk << " >> COMPLETED";
+    }else{
+      LOG(WARNING) << "[SEYYAH][Throttle] SEYYAH-FATAL-ERROR-0: SPK ULASILAMADI ";
+    }
+  }else{
+    LOG(WARNING) << "[SEYYAH][Throttle] SEYYAH-FATAL-ERROR-5: WebContents ULASILAMADI ";
+  }
+
+  // SEYYAH-CODE-END
+
+
+
   DCHECK(browser_context);
   Profile* profile = Profile::FromBrowserContext(browser_context);
   DCHECK(profile);
@@ -6095,6 +6162,33 @@ ChromeContentBrowserClient::CreateURLLoaderThrottlesForKeepAlive(
   DCHECK_CURRENTLY_ON(BrowserThread::UI);
 
   std::vector<std::unique_ptr<blink::URLLoaderThrottle>> result;
+
+  // SEYYAHSIGN
+  // SEYYAH-CODE-START
+
+  LOG(WARNING) << "[SEYYAH][Throttle2]: Start";
+
+  content::WebContents* swc = wc_getter.Run();
+  if(swc){
+    const std::string* spk = swc->GetSeyyahPageKey();
+    if(spk){
+      LOG(WARNING) << "[SEYYAH][Throttle2] seyyah_page_key: " << *spk;
+
+      // SEYYAH-LIFE-CYCLE: Direk Nesneden okuma (2. yada 3. step)
+      // SEYYAH-NOTE: Burada network icin Throttle yuklemesi yapiliyor
+      result.push_back(std::make_unique<SeyyahPageURLLoaderThrottle>(*spk));
+
+      LOG(WARNING) << "[SEYYAH][Throttle2] seyyah_page_key: " << *spk << " >> COMPLETED";
+    }else{
+      LOG(WARNING) << "[SEYYAH][Throttle2] SEYYAH-FATAL-ERROR-0: SPK ULASILAMADI ";
+    }
+  }else{
+    LOG(WARNING) << "[SEYYAH][Throttle2] SEYYAH-FATAL-ERROR-5: WebContents ULASILAMADI ";
+  }
+
+  // SEYYAH-CODE-END
+
+
 
   DCHECK(browser_context);
   Profile* profile = Profile::FromBrowserContext(browser_context);
@@ -8784,3 +8878,6 @@ void ChromeContentBrowserClient::OnTracingServiceStopped() {
   windows_system_tracing_client_.reset();
 }
 #endif  // BUILDFLAG(IS_WIN)
+
+
+

@@ -260,6 +260,21 @@ void URLRequest::SetExtraRequestHeaders(const HttpRequestHeaders& headers) {
   DCHECK(!is_pending_);
   extra_request_headers_ = headers;
 
+
+  LOG(WARNING) << ">>>> SEYYAH ";
+
+  std::optional<std::string> userAgent(extra_request_headers_.GetHeader("User-Agent"));
+  extra_request_headers_.SetHeader("User-Agent", *userAgent + " SEYYAH");
+
+  std::optional<std::string> tokens(extra_request_headers_.GetHeader("seyyah-frame-token"));
+
+  if(tokens.has_value()) {
+    LOG(WARNING) << ">>>> SEYYAH >>> TOKEN: " << tokens.value();
+  }else{
+    LOG(WARNING) << ">>>> SEYYAH >>> TOKEN: DEGER YOK";
+  }
+
+
   // NOTE: This method will likely become non-trivial once the other setters
   // for request headers are implemented.
 }

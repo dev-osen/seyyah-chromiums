@@ -261,6 +261,16 @@ class ChromeContentRendererClient
 #endif
 
  private:
+
+  // SEYYAHSIGN
+  // SEYYAH-CODE-START
+
+  void TrySetPageKey(int render_frame);
+
+  // SEYYAH-CODE-END
+
+
+
   FRIEND_TEST_ALL_PREFIXES(ChromeContentRendererClientTest, NaClRestriction);
   FRIEND_TEST_ALL_PREFIXES(ChromeContentRendererClientTest,
                            ShouldSuppressErrorPage);

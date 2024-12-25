@@ -319,6 +319,7 @@ static_library("ui") {
     "//chrome/browser/search",
     "//chrome/browser/task_manager",
     "//chrome/browser/ui/tabs:tab_enums",
+    "//seyyah"
   ]
 
   deps = [
@@ -695,6 +696,7 @@ static_library("ui") {
     "//ui/surface",
     "//ui/webui",
     "//v8:v8_version",
+    "//seyyah"
   ]
 
   if (is_chrome_branded) {

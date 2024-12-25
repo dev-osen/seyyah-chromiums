@@ -252,6 +252,16 @@
 #include "content/public/browser/picture_in_picture_window_controller.h"
 #endif  // !BUILDFLAG(IS_ANDROID)
 
+
+// SEYYAHSIGN
+// SEYYAH-CODE-START
+
+#include "seyyah/seyyah_page_key_manager.h"
+
+// SEYYAH-CODE-END
+
+
+
 namespace content {
 
 namespace {
@@ -1230,6 +1240,21 @@ class WebContentsOfBrowserContext : public base::SupportsUserData::Data {
 
 }  // namespace
 
+
+
+// SEYYAHSIGN
+// SEYYAH-CODE-START
+
+const std::string* WebContentsImpl::GetSeyyahPageKey() const {
+  base::AutoLock seyyah_lock(seyyah_lock_);
+  return seyyah_page_key_ ? seyyah_page_key_.get() : nullptr;
+}
+
+// SEYYAH-CODE-END
+
+
+
+
 WebContentsImpl::WebContentsImpl(BrowserContext* browser_context)
     : ColorProviderSourceObserver(DefaultColorProviderSource::GetInstance()),
       delegate_(nullptr),
@@ -1285,6 +1310,21 @@ WebContentsImpl::WebContentsImpl(BrowserContext* browser_context)
 #if BUILDFLAG(IS_ANDROID)
   safe_area_insets_host_ = SafeAreaInsetsHost::Create(this);
 #endif
+
+
+  // SEYYAHSIGN
+  // SEYYAH-CODE-START
+
+  LOG(WARNING) << "[SEYYAH][WCI]: START";
+
+  // SEYYAH-LIFE-CYCLE: Yeni key uretme (1. step)
+  // SEYYAH-NOTE: Burada webcontents icin key olusturulur.
+  seyyah_page_key_ = std::make_unique<std::string>(SeyyahPageKeyManager::Instance().GetRandomKey());
+
+  LOG(WARNING) << "[SEYYAH][WCI]: COMPLETED >>> SPK: " << std::move(*seyyah_page_key_);
+
+  // SEYYAH-CODE-END
+
 
   ui::NativeTheme* native_theme = ui::NativeTheme::GetInstanceForWeb();
   native_theme_observation_.Observe(native_theme);
@@ -1553,6 +1593,10 @@ std::unique_ptr<WebContentsImpl> WebContentsImpl::CreateWithOpener(
   if (outer_web_contents) {
     outer_web_contents->InnerWebContentsCreated(new_contents.get());
   }
+
+
+
+
   return new_contents;
 }
 

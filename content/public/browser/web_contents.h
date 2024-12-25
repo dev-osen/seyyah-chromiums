@@ -153,6 +153,15 @@ class WebContents : public PageNavigator, public base::SupportsUserData {
   ADVANCED_MEMORY_SAFETY_CHECKS();
 
  public:
+
+  // SEYYAHSIGN
+  // SEYYAH-CODE-START
+
+  virtual const std::string* GetSeyyahPageKey() const = 0;
+
+  // SEYYAH-CODE-END
+
+
   // Device activity types that can be used by a WebContents.
   enum class CapabilityType {
     // WebUSB

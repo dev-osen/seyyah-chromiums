@@ -1558,7 +1558,26 @@ class CONTENT_EXPORT WebContentsImpl
 
   WebContents* GetOpenedPartitionedPopin() const override;
 
+  // SEYYAHSIGN
+  // SEYYAH-CODE-START
+
+  const std::string* GetSeyyahPageKey() const override;
+
+  // SEYYAH-CODE-END
+
  private:
+
+
+  // SEYYAHSIGN
+  // SEYYAH-CODE-START
+
+  mutable base::Lock seyyah_lock_;
+  std::unique_ptr<std::string> seyyah_page_key_;
+
+  // SEYYAH-CODE-END
+
+
+
   using FrameTreeIterationCallback = base::FunctionRef<void(FrameTree&)>;
   using RenderViewHostIterationCallback =
       base::RepeatingCallback<void(RenderViewHostImpl*)>;
@@ -1772,6 +1791,14 @@ class CONTENT_EXPORT WebContentsImpl
     bool is_notifying_observers_ = false;
     base::ObserverList<WebContentsObserver> observers_;
   };
+
+
+
+
+
+
+
+
 
   // See WebContents::Create for a description of these parameters.
   explicit WebContentsImpl(BrowserContext* browser_context);

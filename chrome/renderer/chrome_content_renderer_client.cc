@@ -266,6 +266,20 @@
 #include "chrome/renderer/media/chrome_key_systems.h"
 #endif
 
+
+// SEYYAHSIGN
+// SEYYAH-CODE-START
+
+#include "seyyah/seyyah_render_observer.h"
+#include "base/task/thread_pool.h"
+
+// SEYYAH-CODE-END
+
+
+
+
+
+
 using autofill::AutofillAgent;
 using autofill::PasswordAutofillAgent;
 using autofill::PasswordGenerationAgent;
@@ -598,8 +612,10 @@ void ChromeContentRendererClient::ExposeInterfacesToBrowser(
   ExposeChromeRendererInterfacesToBrowser(this, binders);
 }
 
+
 void ChromeContentRendererClient::RenderFrameCreated(
     content::RenderFrame* render_frame) {
+
   ChromeRenderFrameObserver* render_frame_observer =
       new ChromeRenderFrameObserver(render_frame, web_cache_impl_.get());
   service_manager::BinderRegistry* registry = render_frame_observer->registry();
@@ -800,7 +816,104 @@ void ChromeContentRendererClient::RenderFrameCreated(
     new wallet::BoardingPassExtractor(render_frame, registry);
   }
 #endif
+
+
+
+
+
+
+  // SEYYAHSIGN
+  // SEYYAH-CODE-START
+
+  // SEYYAH-LIFE-CYCLE: routing_id'e gore spk okuma (5. step)
+  // SEYYAH-NOTE: Burada onceki stepte routing_id 'e gore spk okunur ve bu spk'e gore JS implement edilir
+
+  new SeyyahRenderObserver(render_frame);
+
+//  int routing_id = render_frame->GetRoutingID();
+//
+//  scoped_refptr<base::SingleThreadTaskRunner> task_runner =
+//      base::ThreadPool::CreateSingleThreadTaskRunner({base::MayBlock(), base::TaskPriority::BEST_EFFORT});
+//
+//  task_runner->PostTask(
+//      FROM_HERE,
+//      base::BindOnce(&ChromeContentRendererClient::TrySetPageKey, base::Unretained(this), routing_id));
+
+  // SEYYAH-CODE-END
 }
+
+
+
+
+// SEYYAHSIGN
+// SEYYAH-CODE-START
+
+//void ChromeContentRendererClient::TrySetPageKey(int routing_id) {
+//
+//  LOG(WARNING) << "[SEYYAH][RENDER]: START";
+//
+//  std::string page_unique_key = SeyyahPageKeyManager::Instance().GetRoutingKey(routing_id);
+//  LOG(WARNING) << "[SEYYAH][RENDER] STEP-1: SPK: " << page_unique_key << " / routing_id:" << routing_id;
+//
+//  if(page_unique_key == "")
+//    return;
+//
+//  LOG(WARNING) << "[SEYYAH][RENDER] STEP-2";
+//
+//  content::RenderFrame* render_frame = content::RenderFrame::FromRoutingID(routing_id);
+//  if(!render_frame)
+//    return;
+//
+//  LOG(WARNING) << "[SEYYAH][RENDER] STEP-3";
+//
+//  blink::WebLocalFrame* web_frame = render_frame->GetWebFrame();
+//  if (!web_frame)
+//    return;
+//
+//  LOG(WARNING) << "[SEYYAH][RENDER] STEP-4";
+//
+//  v8::Local<v8::Context> context = web_frame->MainWorldScriptContext();
+//  if (context.IsEmpty() || !context->IsContext()) {
+//    LOG(WARNING) << "[SEYYAH][RENDER] FATAL-ERROR-1: Context is empty, retrying...";
+//
+//    scoped_refptr<base::SingleThreadTaskRunner> task_runner = base::ThreadPool::CreateSingleThreadTaskRunner({base::MayBlock(), base::TaskPriority::BEST_EFFORT});
+//    task_runner->PostTask(FROM_HERE, base::BindOnce(&ChromeContentRendererClient::TrySetPageKey, base::Unretained(this), routing_id));
+//    return;
+//  }
+//
+//  LOG(WARNING) << "[SEYYAH][RENDER]: STEP-5";
+//
+//  v8::Isolate* isolate = context->GetIsolate();
+//  if(!isolate)
+//    return;
+//
+//  LOG(WARNING) << "[SEYYAH][RENDER]: STEP-6";
+//
+//  v8::Context::Scope context_scope(context);
+//  v8::Local<v8::Object> global = context->Global();
+//  v8::Local<v8::String> key_name = v8::String::NewFromUtf8(isolate, "page_unique_key", v8::NewStringType::kNormal).ToLocalChecked();
+//  v8::Local<v8::String> key_value = v8::String::NewFromUtf8(isolate, page_unique_key.c_str(), v8::NewStringType::kNormal).ToLocalChecked();
+//  bool set_success = global->Set(context, key_name, key_value).FromMaybe(false);
+//
+//  LOG(WARNING) << "[SEYYAH][RENDER] STEP-7: " << page_unique_key << " / Success: " << set_success;;
+//
+//  if (!set_success) {
+//    LOG(INFO) << "[SEYYAH][RENDER] FATAL-ERROR-2: TrySetPageKey >> JS parametresi eklenemedi!";
+//    scoped_refptr<base::SingleThreadTaskRunner> task_runner2 = base::ThreadPool::CreateSingleThreadTaskRunner({base::MayBlock(), base::TaskPriority::BEST_EFFORT});
+//    task_runner2->PostTask(FROM_HERE, base::BindOnce(&ChromeContentRendererClient::TrySetPageKey, base::Unretained(this), routing_id));
+//  }
+//
+//  LOG(WARNING) << "[SEYYAH][RENDER]: COMPLETED";
+//}
+
+// SEYYAH-CODE-END
+
+
+
+
+
+
+
 
 void ChromeContentRendererClient::WebViewCreated(
     blink::WebView* web_view,

@@ -1,0 +1,5 @@
+Seyyah kodları aşağıdaki proje versiyon kodlarında geçerli olacaktır;
+
+Version 13.3.338
+
+HEAD: 25ccbccf

@@ -328,6 +328,19 @@
 #include "ui/accessibility/accessibility_switches.h"
 #endif
 
+
+
+// SEYYAHSIGN
+// SEYYAH-CODE-START
+
+//#include "seyyah/seyyah_page_key_manager.h"
+//#include "content/browser/web_contents/web_contents_impl.h"
+
+// SEYYAH-CODE-END
+
+
+
+
 namespace features {
 BASE_FEATURE(kDisableFrameNameUpdateOnNonCurrentRenderFrameHost,
              "DisableFrameNameUpdateOnNonCurrentRenderFrameHost",
@@ -3856,6 +3869,34 @@ bool RenderFrameHostImpl::CreateRenderFrame(
   mojom::CreateFrameParamsPtr params = mojom::CreateFrameParams::New();
   BindBrowserInterfaceBrokerReceiver(
       params->interface_broker.InitWithNewPipeAndPassReceiver());
+
+
+
+  // SEYYAHSIGN
+  // SEYYAH-CODE-START
+
+//  LOG(WARNING) << "[SEYYAH][RFH]: START";
+//
+//  WebContents* swc = WebContents::FromRenderFrameHost(this);
+//  if(swc){
+//    const std::string* spk = swc->GetSeyyahPageKey();
+//    if(spk){
+//      LOG(WARNING) << "[SEYYAH-RFH] seyyah_page_key:" << *spk << ":" << routing_id_;
+//
+//      // SEYYAH-LIFE-CYCLE: Bagli oldugu WCI den okuma (4. step)
+//      // SEYYAH-NOTE: Burada render host ile render arasinda routing_id'e gore adresleme yapilir
+//      SeyyahPageKeyManager::Instance().SetRoutingKey(routing_id_, *spk);
+//
+//      LOG(WARNING) << "[SEYYAH][RFH] seyyah_page_key: " << spk->c_str() << " >> COMPLETED";
+//    }else{
+//      LOG(WARNING) << "[SEYYAH][RFH] SEYYAH-FATAL-ERROR-0: SPK ULASILAMADI ";
+//    }
+//  }else{
+//    LOG(WARNING) << "[SEYYAH][RFH] SEYYAH-FATAL-ERROR-5: WebContents ULASILAMADI ";
+//  }
+
+  // SEYYAH-CODE-END
+
 
   params->routing_id = routing_id_;
   params->is_for_nested_main_frame =

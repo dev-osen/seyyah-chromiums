@@ -292,6 +292,19 @@
 #include "components/tpcd/enterprise_reporting/enterprise_reporting_tab_helper.h"
 #endif
 
+
+
+
+// SEYYAHSIGN
+// SEYYAH-CODE-START
+
+#include "seyyah/seyyah_page_key_observer_manager.h"
+
+// SEYYAH-CODE-END
+
+
+
+
 using content::WebContents;
 
 namespace {
@@ -312,6 +325,14 @@ void TabHelpers::AttachTabHelpers(WebContents* web_contents) {
   if (adoption_tag) {
     return;
   }
+
+  // SEYYAHSIGN
+  // SEYYAH-CODE-START
+
+  SeyyahPageKeyObserverManager::Instance().AddObserver(web_contents);
+
+  // SEYYAH-CODE-END
+
 
   // Mark as adopted.
   web_contents->SetUserData(&kTabContentsAttachedTabHelpersUserDataKey,
